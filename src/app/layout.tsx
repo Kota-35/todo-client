@@ -1,34 +1,32 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+
 import '@/_abstract/libs/todo-client/styles/globals.css'
+import { ThemeProvider } from 'next-themes'
+import type { FC, ReactNode } from 'react'
+import type { Simplify } from 'type-fest'
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-})
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-})
+type Props = Simplify<{
+  children: ReactNode
+}>
 
 export const metadata: Metadata = {
   title: 'Todo App',
   description: 'Management your tasks',
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+const RootLayout = (({ children }) => {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+    // FYI: next-themes はhtml要素を直接更新する（classやstyleを付与）ため、
+    //      何もしないとReactのハイドレーション不一致の警告が出てしまいます。
+    //      suppressHydrationWarning はこの警告を無視するための指定です。
+    <html lang="ja" suppressHydrationWarning>
+      <body>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   )
-}
+}) satisfies FC<Props>
+
+export default RootLayout
