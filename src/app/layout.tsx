@@ -16,14 +16,9 @@ export const metadata: Metadata = {
 
 const RootLayout = (({ children }) => {
   return (
-    // FYI: next-themes はhtml要素を直接更新する（classやstyleを付与）ため、
-    //      何もしないとReactのハイドレーション不一致の警告が出てしまいます。
-    //      suppressHydrationWarning はこの警告を無視するための指定です。
     <html lang="ja" suppressHydrationWarning>
       <body>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
-        </ThemeProvider>
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   )

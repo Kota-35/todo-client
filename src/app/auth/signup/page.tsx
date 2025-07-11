@@ -1,16 +1,14 @@
 import clsx from 'clsx'
+import type { NextPage } from 'next'
+import { RootHeader } from '@/app/(root)/_components/RootHeader'
+import { RegisterSection } from '@/features/authentication/components/RegisterSection/_'
 
-import { RootHeader } from './_components/RootHeader'
-import { RootMain } from './_components/RootMain'
-
-export default function Home() {
+const Page = (() => {
   return (
     <div
       className={clsx(
         // 要素の高さを、ビューポートの最小高さいっぱいに設定する
         'min-h-screen',
-        // 右下方向にグラデーション,
-        // [More: https://mai.kosodante.com/tailwindcss-gradation-color/]
         'bg-gradient-to-br',
         'from-blue-50',
         'to-indigo-100',
@@ -18,7 +16,9 @@ export default function Home() {
     >
       <RootHeader />
 
-      <RootMain />
+      <RegisterSection />
     </div>
   )
-}
+}) satisfies NextPage
+
+export default Page
