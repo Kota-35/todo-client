@@ -59,7 +59,9 @@ export async function Signup(
           ? '現在サーバーが混み合っています。しばらく時間をおいて再度お試しください。'
           : error.message.includes('HTTP 400')
             ? '入力内容に誤りがあります。'
-            : '登録処理に失敗しました。しばらく時間をおいて再度お試しください。'
+            : error.message.includes('HTTP 409')
+              ? 'このメールアドレスまたはユーザー名は既に登録されています。'
+              : '登録処理に失敗しました。しばらく時間をおいて再度お試しください。'
         return { errors: { email: [errorMessage] } }
       },
       (data): SignupResult => ({

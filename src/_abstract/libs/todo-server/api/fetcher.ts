@@ -43,6 +43,13 @@ export async function makeFetcher<I, O>(
               ),
               TE.chain((errorJson) => {
                 console.error('Server error response:', errorJson)
+                if (res.status === 409) {
+                  return TE.left(
+                    new Error(
+                      `HTTP ${res.status}: ${errorJson.message || 'すでに登録されているユーザーです'}`,
+                    ),
+                  )
+                }
                 return TE.left(
                   new Error(
                     `HTTP ${res.status}: ${
