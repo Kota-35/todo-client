@@ -160,7 +160,10 @@ export const RootMain = (() => {
         <div
           className={clsx(
             'w-full',
+            // 	最大幅: 28rem
             'max-w-md',
+            // 要素の左右のマージンを自動的に均等に設定
+            // 最大幅に制限されたコンテナを画面の中央に配置することができる
             'mx-auto',
             // 背景を白に
             'bg-white',

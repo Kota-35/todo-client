@@ -1,11 +1,16 @@
+'use client'
+
 import clsx from 'clsx'
 import { ListTodo } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import type { FC } from 'react'
 import type { Simplify } from 'type-fest'
 
 type Props = Simplify<Record<string, unknown>>
 
 export const RootHeader = (() => {
+  const router = useRouter()
+
   return (
     <header
       className={clsx(
@@ -40,7 +45,10 @@ export const RootHeader = (() => {
             'space-x-2', // 子要素に水平方向のスペース
           )}
         >
-          <ListTodo className={clsx('h-8', 'w-8', 'text-blue-600')}></ListTodo>
+          <ListTodo
+            onClick={() => router.push('/')}
+            className={clsx('h-8', 'w-8', 'text-blue-600')}
+          ></ListTodo>
           <h1 className={clsx('text-gray-900', 'text-2xl', 'font-bold')}>
             TodoApp
           </h1>
