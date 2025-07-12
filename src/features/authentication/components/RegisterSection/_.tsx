@@ -2,7 +2,7 @@
 
 import clsx from 'clsx'
 import { Eye, EyeOff } from 'lucide-react'
-import { type FC, useState } from 'react'
+import { type FC, useActionState, useState } from 'react'
 import type { Simplify } from 'type-fest'
 import { Button } from '@/_abstract/libs/todo-client/components/button'
 import {
@@ -14,13 +14,13 @@ import {
 } from '@/_abstract/libs/todo-client/components/card'
 import { Input } from '@/_abstract/libs/todo-client/components/input'
 import { Label } from '@/_abstract/libs/todo-client/components/label'
+import { Signup } from '../../api/Signup/_'
 
 type Props = Simplify<Record<string, unknown>>
 
 export const RegisterSection = (() => {
-  // FYI; パスワードの表示/非表示切り替え
-  // [More: https://zenn.dev/dove/articles/cd1eb343a9e76bcd2066]
   const [isRevealPassword, setIsRevealPassword] = useState(false)
+  const [state, formAction] = useActionState(Signup, undefined)
 
   const togglePassword = () => {
     setIsRevealPassword((prevState) => !prevState)
@@ -29,16 +29,14 @@ export const RegisterSection = (() => {
   return (
     <div
       className={clsx(
-        // 子要素をフレックスボックスに設定
         'flex',
         'flex-1',
-        // フレックスボックスの子要素を水平方向の中心に設定
         'justify-center',
         'max-w-md',
         'mx-auto',
       )}
     >
-      <div className={clsx('w-full', 'bg-white')}>
+      <div className={clsx('w-full', 'bg-white', 'rounded-md')}>
         <Card>
           <CardHeader className={clsx('space-y-1', 'text-center')}>
             <CardTitle
@@ -49,20 +47,45 @@ export const RegisterSection = (() => {
           </CardHeader>
 
           <CardContent className={clsx('space-y-4')}>
-            <form>
+            <form action={formAction}>
               <div className={clsx('flex', 'flex-col', 'gap-6')}>
+                <div className={clsx('grid', 'gap-2')}>
+                  <Label htmlFor="username" className={clsx('text-gray-900')}>
+                    Username
+                  </Label>
+                  <Input
+                    id="username"
+                    name="username"
+                    type="username"
+                    placeholder="Sample"
+                    required
+                    className={clsx('text-gray-500')}
+                  />
+                </div>
+                {state?.errors?.username && (
+                  <p className={clsx('text-red-500', 'text-sm')}>
+                    {state.errors.username}
+                  </p>
+                )}
+
                 <div className={clsx('grid', 'gap-2')}>
                   <Label htmlFor="email" className={clsx('text-gray-900')}>
                     Email
                   </Label>
                   <Input
                     id="email"
+                    name="email"
                     type="email"
                     placeholder="sample@example.com"
                     required
                     className={clsx('text-gray-500')}
                   />
                 </div>
+                {state?.errors?.email && (
+                  <p className={clsx('text-red-500', 'text-sm')}>
+                    {state.errors.email}
+                  </p>
+                )}
 
                 <div className={clsx('grid', 'gap-2')}>
                   <Label htmlFor="password" className={clsx('text-gray-900')}>
@@ -71,6 +94,7 @@ export const RegisterSection = (() => {
                   <div className={clsx('relative')}>
                     <Input
                       id="password"
+                      name="password"
                       type={isRevealPassword ? 'text' : 'password'}
                       placeholder="Password"
                       required
@@ -97,18 +121,35 @@ export const RegisterSection = (() => {
                     </button>
                   </div>
                 </div>
+                {state?.errors?.password && (
+                  <div>
+                    <p className={clsx('text-red-500', 'text-base')}>
+                      パスワードは以下の条件を満たす必要があります:
+                    </p>
+                    <ul>
+                      {state.errors.password.map((error) => (
+                        <li
+                          key={error}
+                          className={clsx('text-red-500', 'text-sm')}
+                        >
+                          ・ {error}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <CardFooter className={clsx('flex-row-reverse', 'px-0')}>
+                  <Button
+                    type="submit"
+                    className={clsx('text-white', 'max-w-md', 'bg-blue-600')}
+                  >
+                    Sign Up
+                  </Button>
+                </CardFooter>
               </div>
             </form>
           </CardContent>
-
-          <CardFooter className={clsx('flex-row-reverse')}>
-            <Button
-              type="submit"
-              className={clsx('text-while', 'max-w-md', 'bg-blue-600')}
-            >
-              Sign Up
-            </Button>
-          </CardFooter>
         </Card>
       </div>
     </div>

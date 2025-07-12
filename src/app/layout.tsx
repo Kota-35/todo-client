@@ -4,6 +4,7 @@ import '@/_abstract/libs/todo-client/styles/globals.css'
 import { ThemeProvider } from 'next-themes'
 import type { FC, ReactNode } from 'react'
 import type { Simplify } from 'type-fest'
+import { ReactQueryProvider } from './_providers/ReactQueryProvider'
 
 type Props = Simplify<{
   children: ReactNode
@@ -18,7 +19,9 @@ const RootLayout = (({ children }) => {
   return (
     <html lang="ja" suppressHydrationWarning>
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <ReactQueryProvider>{children}</ReactQueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
