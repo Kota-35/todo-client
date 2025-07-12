@@ -1,92 +1,73 @@
 'use server'
 
-import * as E from 'fp-ts/lib/Either'
-import { pipe } from 'fp-ts/lib/function'
-import * as TE from 'fp-ts/lib/TaskEither'
 import type { z } from 'zod'
+import { stringifyReplaceError } from '../../mdn/stringify/stringifyReplaceError'
 import { env } from '../../t3-env/config/_'
 
-export async function makeFetcher<I, O>(
-  path: string,
-  schema: z.ZodType<O>,
-  method: 'GET' | 'POST' = 'GET',
-) {
-  const fetchFn = async (body: I): Promise<O> => {
-    const result = await pipe(
-      TE.tryCatch(
-        () =>
-          fetch(`${env.SERVER_ORIGIN}${path}`, {
-            method,
-            headers: { 'Content-Type': 'application/json' },
-            body: method === 'GET' ? undefined : JSON.stringify(body),
-          }),
-        (e) => new Error(String(e)),
-      ),
-      TE.chain((res) =>
-        res.ok
-          ? TE.tryCatch(
-              async () => {
-                const jsonData = await res.json()
-                console.log('Response JSON before validation:', jsonData)
-                return jsonData
-              },
-              () =>
-                new Error(`HTTP ${res.status}: レスポンスの解析に失敗しました`),
-            )
-          : pipe(
-              TE.tryCatch(
-                () => res.json(),
-                () =>
-                  new Error(
-                    `HTTP ${res.status}: レスポンスの解析に失敗しました`,
-                  ),
-              ),
-              TE.chain((errorJson) => {
-                console.error('Server error response:', errorJson)
-                if (res.status === 409) {
-                  return TE.left(
-                    new Error(
-                      `HTTP ${res.status}: ${errorJson.message || 'すでに登録されているユーザーです'}`,
-                    ),
-                  )
-                }
-                return TE.left(
-                  new Error(
-                    `HTTP ${res.status}: ${
-                      errorJson.message || 'サーバーでエラーが発生しました'
-                    }`,
-                  ),
-                )
-              }),
-            ),
-      ),
-      TE.chain((json) =>
-        TE.fromEither(
-          pipe(
-            E.tryCatch(
-              () => {
-                try {
-                  const validated = schema.parse(json)
-                  console.log('Validation successful:', validated)
-                  return validated
-                } catch (e) {
-                  console.error('Validation error:', e)
-                  throw e
-                }
-              },
-              (e) => new Error(String(e)),
-            ),
-          ),
-        ),
-      ),
-    )()
+type HttpMethod = 'GET' | 'POST'
+export type FetcherOptions<_I, O> = {
+  path: string
+  schema: z.ZodType<O>
+  method?: HttpMethod
+}
 
-    if (E.isLeft(result)) {
-      throw result.left
+type Fetcher<I, O> = (body: I) => Promise<O>
+type FetcherFactory = <I, O>(options: FetcherOptions<I, O>) => Fetcher<I, O>
+
+export const makeFetcher = (<I, O>({
+  path,
+  schema,
+  method = 'GET',
+}: FetcherOptions<I, O>): Fetcher<I, O> => {
+  return async (body: I): Promise<O> => {
+    // 1. APIリクエストの実行
+    const response = await fetch(`${env.SERVER_ORIGIN}${path}`, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: method === 'GET' ? undefined : JSON.stringify(body),
+    }).catch((error) => {
+      // ネトワークエラーやサーバーの接続が失敗した際のエラー
+      // レスポンスすれ受け取れない
+      console.error(
+        'makeFetcher response:',
+        JSON.stringify(error, stringifyReplaceError, 2),
+      )
+      throw error
+    })
+
+    // 2. レスポンスのJSONパース
+    const jsonData = await response.json().catch((error) => {
+      console.error(
+        'makeFetcher jsonData:',
+        JSON.stringify(error, stringifyReplaceError, 2),
+      )
+      throw error
+    })
+
+    // 3. エラーハンドリング
+    if (!response.ok) {
+      console.error('Server error response:', jsonData)
+      if (response.status === 409) {
+        console.error(
+          `makeFetcher HTTP ${response.status}:`,
+          JSON.stringify(jsonData, stringifyReplaceError, 2),
+        )
+      }
+      throw new Error(
+        `HTTP ${response.status}, ${JSON.stringify(jsonData, stringifyReplaceError, 2)}`,
+      )
     }
 
-    return result.right
+    // 4. スキーマバリデーション
+    try {
+      const validated = schema.parse(jsonData)
+      return validated
+    } catch (error: unknown) {
+      console.error(
+        'makeFetcher jsonData:',
+        JSON.stringify(error, stringifyReplaceError, 2),
+      )
+      throw error
+    }
   }
-
-  return fetchFn
-}
+}) satisfies FetcherFactory
