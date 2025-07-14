@@ -14,13 +14,13 @@ import {
 } from '@/_abstract/libs/todo-client/components/card'
 import { Input } from '@/_abstract/libs/todo-client/components/input'
 import { Label } from '@/_abstract/libs/todo-client/components/label'
-import { Signup } from '../../api/Signup/_'
+import { Login } from '../../api/Login'
 
 type Props = Simplify<Record<string, unknown>>
 
-export const RegisterSection = (() => {
+export const LoginSection = (() => {
   const [isRevealPassword, setIsRevealPassword] = useState(false)
-  const [state, formAction] = useActionState(Signup, undefined)
+  const [state, formAction] = useActionState(Login, undefined)
 
   const togglePassword = () => {
     setIsRevealPassword((prevState) => !prevState)
@@ -42,7 +42,7 @@ export const RegisterSection = (() => {
             <CardTitle
               className={clsx('text-gray-900', 'font-bold', 'text-2xl')}
             >
-              Sign up
+              Login
             </CardTitle>
           </CardHeader>
 
@@ -64,25 +64,6 @@ export const RegisterSection = (() => {
                       {state.message}
                     </p>
                   </div>
-                )}
-
-                <div className={clsx('grid', 'gap-2')}>
-                  <Label htmlFor="username" className={clsx('text-gray-900')}>
-                    Username
-                  </Label>
-                  <Input
-                    id="username"
-                    name="username"
-                    type="username"
-                    placeholder="Sample"
-                    required
-                    className={clsx('text-gray-500')}
-                  />
-                </div>
-                {state?.errors?.username && (
-                  <p className={clsx('text-red-500', 'text-sm')}>
-                    {state.errors.username}
-                  </p>
                 )}
 
                 <div className={clsx('grid', 'gap-2')}>
@@ -161,7 +142,7 @@ export const RegisterSection = (() => {
                     type="submit"
                     className={clsx('text-white', 'max-w-md', 'bg-blue-600')}
                   >
-                    Sign Up
+                    Login
                   </Button>
                 </CardFooter>
               </div>
