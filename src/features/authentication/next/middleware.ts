@@ -8,7 +8,6 @@ export const authMiddleware = (async (request, _event) => {
   const sessionCookie = request.cookies.get(__HOST_SESSION)
 
   if (!sessionCookie) {
-    console.log('セッションクッキーが見つかりません')
     return NextResponse.redirect(new URL('/auth/login', request.nextUrl), 303)
   }
 
@@ -16,7 +15,6 @@ export const authMiddleware = (async (request, _event) => {
     const cookieHeader = request.headers.get('cookie') || ''
     const isValid = await validSession(cookieHeader)
     if (!isValid) {
-      console.log('セッションが無効です')
       const response = NextResponse.redirect(
         new URL('/auth/login', request.nextUrl),
         303,
@@ -26,7 +24,6 @@ export const authMiddleware = (async (request, _event) => {
     }
 
     // セッションが有効な場合は次の処理に進む
-    console.log('セッションが有効です')
     return NextResponse.next()
   } catch (error) {
     console.error('セッション検証中にエラーが発生しました:', error)

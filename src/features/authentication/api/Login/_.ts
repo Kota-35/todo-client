@@ -79,7 +79,7 @@ export const Login = (async (_, formData) => {
           .map((cookie) => cookie.trim())
 
         for (const cookieEntry of cookieEntries) {
-          const [cookiePair, ...attributes] = cookieEntry.split(';')
+          const [cookiePair, ..._attributes] = cookieEntry.split(';')
           const [name, value] = cookiePair.split('=').map((s) => s.trim())
 
           // __Host-session と __Host-refresh のみを処理
@@ -109,6 +109,7 @@ export const Login = (async (_, formData) => {
     if (
       error instanceof Error &&
       (error.message === 'NEXT_REDIRECT' ||
+        // biome-ignore lint/suspicious/noExplicitAny: any型だとだめ
         (error as any).__NEXT_ERROR_CODE === 'E394')
     ) {
       throw error

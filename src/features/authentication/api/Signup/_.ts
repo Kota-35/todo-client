@@ -77,6 +77,7 @@ export const Signup = (async (_, formData) => {
     if (
       error instanceof Error &&
       (error.message === 'NEXT_REDIRECT' ||
+        // biome-ignore lint/suspicious/noExplicitAny: any型だとダメ
         (error as any).__NEXT_ERROR_CODE === 'E394')
     ) {
       throw error

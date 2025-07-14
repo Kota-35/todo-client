@@ -3,6 +3,7 @@ export class HttpError extends Error {
   constructor(
     public status: number,
     public statusText: string,
+    // biome-ignore lint/suspicious/noExplicitAny: any型だとダメ
     public responseData: any,
     message?: string,
   ) {
