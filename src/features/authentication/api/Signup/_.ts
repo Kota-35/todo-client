@@ -1,27 +1,18 @@
 'use server'
 
-import { pipe } from 'fp-ts/function'
-import * as TE from 'fp-ts/TaskEither'
+import { redirect } from 'next/navigation'
+import { z } from 'zod'
+import { stringifyReplaceError } from '@/_abstract/libs/mdn/stringify/stringifyReplaceError'
 import { postUsers } from '@/_abstract/libs/todo-server/api/endpoints'
 import type { AuthRegisterRequestType } from '@/_abstract/libs/todo-server/schemas/users'
-import { type FormState, SignupFormSchema } from './_.schema'
+import { SignupFormSchema, type SignupFormState } from './_.schema'
 
-type SignupResult = {
-  errors?: {
-    username?: string[]
-    email?: string[]
-    password?: string[]
-  }
-  success?: {
-    username: string
-    email: string
-  }
-}
-
-export async function Signup(
-  state: FormState,
+type SignupProps = (
+  state: SignupFormState,
   formData: FormData,
-): Promise<SignupResult> {
+) => Promise<SignupFormState>
+
+export const Signup = (async (_, formData) => {
   // バリデーション
   const validationFields = SignupFormSchema.safeParse({
     username: formData.get('username'),
@@ -31,7 +22,7 @@ export async function Signup(
 
   if (!validationFields.success) {
     return {
-      errors: validationFields.error.flatten().fieldErrors,
+      errors: z.flattenError(validationFields.error).fieldErrors,
     }
   }
 
@@ -44,29 +35,21 @@ export async function Signup(
   } satisfies AuthRegisterRequestType
 
   // APIリクエストの実行
-  return pipe(
-    TE.tryCatch(
-      () => postUsers(authReq),
-      (error) =>
-        error instanceof Error
-          ? error
-          : new Error('登録処理中にエラーが発生しました'),
-    ),
-    TE.match(
-      (error): SignupResult => {
-        console.error('Signup error:', error)
-        const errorMessage = error.message.includes('HTTP 500')
-          ? '現在サーバーが混み合っています。しばらく時間をおいて再度お試しください。'
-          : error.message.includes('HTTP 400')
-            ? '入力内容に誤りがあります。'
-            : error.message.includes('HTTP 409')
-              ? 'このメールアドレスまたはユーザー名は既に登録されています。'
-              : '登録処理に失敗しました。しばらく時間をおいて再度お試しください。'
-        return { errors: { email: [errorMessage] } }
-      },
-      (data): SignupResult => ({
-        success: { username: data.username, email: data.email },
-      }),
-    ),
-  )()
-}
+  const response = await postUsers(authReq).catch((error) => {
+    console.error(
+      'Signup error:',
+      JSON.stringify(error, stringifyReplaceError, 2),
+    )
+    throw error
+  })
+
+  // 登録したらリダイレクト
+  if (response.success) {
+    redirect('/auth/login')
+  }
+
+  // APIからのエラーレスポンスの場合
+  return {
+    message: response.error?.message || '登録に失敗しました。',
+  }
+}) satisfies SignupProps
