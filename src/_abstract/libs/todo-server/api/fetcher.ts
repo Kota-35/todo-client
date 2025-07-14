@@ -12,13 +12,15 @@ export type FetcherOptions<_I, O> = {
 }
 
 type Fetcher<I, O> = (body: I) => Promise<O>
-type FetcherFactory = <I, O>(options: FetcherOptions<I, O>) => Fetcher<I, O>
+type FetcherFactory = <I, O>(
+  options: FetcherOptions<I, O>,
+) => Promise<Fetcher<I, O>>
 
-export const makeFetcher = (<I, O>({
+export const makeFetcher = (async <I, O>({
   path,
   schema,
   method = 'GET',
-}: FetcherOptions<I, O>): Fetcher<I, O> => {
+}: FetcherOptions<I, O>): Promise<Fetcher<I, O>> => {
   return async (body: I): Promise<O> => {
     // 1. APIリクエストの実行
     const response = await fetch(`${env.SERVER_ORIGIN}${path}`, {

@@ -7,9 +7,11 @@ import {
 } from '../schemas/users'
 import { type FetcherOptions, makeFetcher } from './fetcher'
 
-export async function postUsers(
+type PostUsersProps = (
   body: AuthRegisterRequestType,
-): Promise<AuthRegisterResponseType> {
+) => Promise<AuthRegisterResponseType>
+
+export const postUsers = (async (body) => {
   const option = {
     path: '/api/v1/users',
     schema: AuthRegisterResponse,
@@ -21,4 +23,4 @@ export async function postUsers(
     AuthRegisterResponseType
   >(option)
   return fetcher(body)
-}
+}) satisfies PostUsersProps
