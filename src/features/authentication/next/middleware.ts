@@ -1,8 +1,13 @@
-import { type NextMiddleware, NextResponse } from 'next/server'
-
-import { getSessionsMeForMiddleware } from '@/_abstract/libs/todo-server/api/endpoints'
+import {
+  type NextMiddleware,
+  type NextRequest,
+  NextResponse,
+} from 'next/server'
+import { stringifyReplaceError } from '@/_abstract/libs/mdn/stringify/stringifyReplaceError'
+import { env } from '@/_abstract/libs/t3-env/config'
 
 const __HOST_SESSION = '__Host-session'
+const __HOST_REFRESH = '__Host-refresh'
 
 export const authMiddleware = (async (request, _event) => {
   const sessionCookie = request.cookies.get(__HOST_SESSION)
@@ -11,35 +16,49 @@ export const authMiddleware = (async (request, _event) => {
     return NextResponse.redirect(new URL('/auth/login', request.nextUrl), 303)
   }
 
-  try {
-    const cookieHeader = request.headers.get('cookie') || ''
-    const isValid = await validSession(cookieHeader)
-    if (!isValid) {
-      const response = NextResponse.redirect(
-        new URL('/auth/login', request.nextUrl),
-        303,
-      )
-      response.cookies.delete(__HOST_SESSION)
-      return response
-    }
-
-    // セッションが有効な場合は次の処理に進む
-    return NextResponse.next()
-  } catch (error) {
-    console.error('セッション検証中にエラーが発生しました:', error)
-    const response = NextResponse.redirect(
-      new URL('/auth/login', request.nextUrl),
-      303,
+  const _ = await fetch(new URL('/api/v1/sessions/me', env.SERVER_ORIGIN), {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Cookie: request.headers.get('cookie') || '',
+    },
+    credentials: 'include',
+  }).catch((error) => {
+    console.error(
+      '[auth middleware]',
+      JSON.stringify(error, stringifyReplaceError, 2),
     )
-    response.cookies.delete(__HOST_SESSION)
-    return response
-  }
+    createAuthFailureResponse(request)
+    NextResponse.redirect(new URL('/auth/login', request.nextUrl), 303)
+  })
+
+  // セッションが有効な場合は次の処理に進む
+  return NextResponse.next()
 }) satisfies NextMiddleware
 
-type ValidSessionProps = (cookieHeader: string) => Promise<boolean>
+const createAuthFailureResponse = (request: NextRequest) => {
+  const response = NextResponse.redirect(
+    new URL('/auth/login', request.nextUrl),
+    303,
+  )
 
-const validSession = (async (cookieHeader) => {
-  // サーバーに対してセッションの有効性を確認
-  const response = await getSessionsMeForMiddleware(cookieHeader)
-  return response.success
-}) satisfies ValidSessionProps
+  // __Host-プレフィックスクッキーを正しく削除
+  // Logout/_.tsと同じ方法を使用
+  response.cookies.set(__HOST_SESSION, '', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0, // 即座に期限切れにする
+  })
+
+  response.cookies.set(__HOST_REFRESH, '', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0, // 即座に期限切れにする
+  })
+
+  return response
+}
