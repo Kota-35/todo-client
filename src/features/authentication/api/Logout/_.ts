@@ -32,8 +32,23 @@ export const logoutAction = (async () => {
     )
   })
 
-  //クッキーを削除
-  cookieStore.delete('__Host-session')
-  cookieStore.delete('__Host-refresh')
+  // __Host-プレフィックスクッキーを正しく削除
+  // __Host-クッキーには特定のセキュリティ属性が必要
+  cookieStore.set('__Host-session', '', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0, // 即座に期限切れにする
+  })
+
+  cookieStore.set('__Host-refresh', '', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0, // 即座に期限切れにする
+  })
+
   redirect('/')
 }) satisfies LogoutAction
