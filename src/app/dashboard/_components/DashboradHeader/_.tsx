@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { type FC, useState } from 'react'
 import type { Simplify } from 'type-fest'
 import { Button } from '@/_abstract/libs/todo-client/components/button'
+import { logoutAction } from '@/features/authentication/api/Logout'
 import { ProjectSelector } from '@/features/Dashboard/components/ProjectSelector/_'
 
 type Props = Simplify<Record<string, unknown>>
@@ -52,6 +53,13 @@ export const DashboardHeader = (() => {
   const router = useRouter()
   const [selectedProject, setSelectedProject] = useState<string>('')
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false)
+
+  const handleLogout = async () => {
+    await logoutAction().catch((error) => {
+      console.error('ログアウトに失敗しました', error)
+      window.location.href = '/'
+    })
+  }
 
   // モックデータ
   const projects: Project[] = [
@@ -235,7 +243,7 @@ export const DashboardHeader = (() => {
             <Settings className={clsx('h-4', 'w-4', 'text-gray-900')} />
           </Button>
 
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" onClick={handleLogout}>
             <LogOut className={clsx('h-4', 'w-4', 'text-gray-900')} />
           </Button>
         </div>
