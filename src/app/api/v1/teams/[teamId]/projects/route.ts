@@ -12,7 +12,7 @@ const getTeamProjectsResponse = createApiResponse(
 
 export async function GET(
   _: NextRequest,
-  { params }: { params: { teamId: string } },
+  { params }: { params: Promise<{ teamId: string }> },
 ) {
   try {
     const cookieStore = await cookies()
