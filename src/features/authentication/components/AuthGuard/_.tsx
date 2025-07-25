@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { type FC, type ReactNode, useEffect } from 'react'
 import type { Simplify } from 'type-fest'
-import { useSession } from '../../hooks'
+import { useSession } from '@/features/authentication/components/AuthGuard/hooks/_'
 
 type Props = Simplify<{
   children: ReactNode
@@ -15,7 +15,7 @@ export const AuthGuard = (({ children, redirectTo = '/auth/login' }) => {
   const { data: session, isLoading, error } = useSession()
 
   useEffect(() => {
-    if (!isLoading && (!session?.authenticated || error)) {
+    if (!isLoading && (!session?.success || error)) {
       router.push(redirectTo)
     }
   }, [session, isLoading, error, router, redirectTo])
@@ -30,7 +30,7 @@ export const AuthGuard = (({ children, redirectTo = '/auth/login' }) => {
   }
 
   // 認証されていない場合は何も表示しない（リダイレクト処理中）
-  if (!session?.authenticated || error) {
+  if (!session?.success || error) {
     return null
   }
 
