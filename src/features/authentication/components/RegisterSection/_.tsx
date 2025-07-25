@@ -14,7 +14,7 @@ import {
 } from '@/_abstract/libs/todo-client/components/card'
 import { Input } from '@/_abstract/libs/todo-client/components/input'
 import { Label } from '@/_abstract/libs/todo-client/components/label'
-import { useSignup } from '../../hooks'
+import { useSignup } from '@/features/authentication/components/RegisterSection/hooks'
 
 type Props = Simplify<Record<string, unknown>>
 
