@@ -2,7 +2,7 @@
 
 import clsx from 'clsx'
 import { Eye, EyeOff } from 'lucide-react'
-import { type FC, useActionState, useState } from 'react'
+import { type FC, useState } from 'react'
 import type { Simplify } from 'type-fest'
 import { Button } from '@/_abstract/libs/todo-client/components/button'
 import {
@@ -14,16 +14,24 @@ import {
 } from '@/_abstract/libs/todo-client/components/card'
 import { Input } from '@/_abstract/libs/todo-client/components/input'
 import { Label } from '@/_abstract/libs/todo-client/components/label'
-import { Login } from '../../api/Login'
+import { useLogin } from '../../hooks'
 
 type Props = Simplify<Record<string, unknown>>
 
 export const LoginSection = (() => {
   const [isRevealPassword, setIsRevealPassword] = useState(false)
-  const [state, formAction] = useActionState(Login, undefined)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
+  const loginMutation = useLogin()
 
   const togglePassword = () => {
     setIsRevealPassword((prevState) => !prevState)
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    loginMutation.mutate({ email, password })
   }
 
   return (
@@ -47,10 +55,10 @@ export const LoginSection = (() => {
           </CardHeader>
 
           <CardContent className={clsx('space-y-4')}>
-            <form action={formAction}>
+            <form onSubmit={handleSubmit}>
               <div className={clsx('flex', 'flex-col', 'gap-6')}>
                 {/* 一般的なエラーメッセージ表示 */}
-                {state?.message && (
+                {loginMutation.error && (
                   <div
                     className={clsx(
                       'p-4',
@@ -61,7 +69,7 @@ export const LoginSection = (() => {
                     )}
                   >
                     <p className={clsx('text-red-800', 'text-sm')}>
-                      {state.message}
+                      ログインに失敗しました。メールアドレスとパスワードを確認してください。
                     </p>
                   </div>
                 )}
@@ -75,15 +83,12 @@ export const LoginSection = (() => {
                     name="email"
                     type="email"
                     placeholder="sample@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                     className={clsx('text-gray-500')}
                   />
                 </div>
-                {state?.errors?.email && (
-                  <p className={clsx('text-red-500', 'text-sm')}>
-                    {state.errors.email}
-                  </p>
-                )}
 
                 <div className={clsx('grid', 'gap-2')}>
                   <Label htmlFor="password" className={clsx('text-gray-900')}>
@@ -95,6 +100,8 @@ export const LoginSection = (() => {
                       name="password"
                       type={isRevealPassword ? 'text' : 'password'}
                       placeholder="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       required
                       className={clsx('text-gray-500', 'pr-10')}
                     />
@@ -119,30 +126,14 @@ export const LoginSection = (() => {
                     </button>
                   </div>
                 </div>
-                {state?.errors?.password && (
-                  <div>
-                    <p className={clsx('text-red-500', 'text-base')}>
-                      パスワードは以下の条件を満たす必要があります:
-                    </p>
-                    <ul>
-                      {state.errors.password.map((error) => (
-                        <li
-                          key={error}
-                          className={clsx('text-red-500', 'text-sm')}
-                        >
-                          ・ {error}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
 
                 <CardFooter className={clsx('flex-row-reverse', 'px-0')}>
                   <Button
                     type="submit"
+                    disabled={loginMutation.isPending}
                     className={clsx('text-white', 'max-w-md', 'bg-blue-600')}
                   >
-                    Login
+                    {loginMutation.isPending ? 'ログイン中...' : 'Login'}
                   </Button>
                 </CardFooter>
               </div>

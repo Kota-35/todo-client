@@ -1,3 +1,5 @@
+'use client'
+
 import clsx from 'clsx'
 import type { NextPage } from 'next'
 import { DashboardHeader } from './_components/DashboradHeader/_'

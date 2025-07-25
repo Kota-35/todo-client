@@ -6,10 +6,12 @@ import { useRouter } from 'next/navigation'
 import { type FC, useState } from 'react'
 import type { Simplify } from 'type-fest'
 import { Button } from '@/_abstract/libs/todo-client/components/button'
-import { logoutAction } from '@/features/authentication/api/Logout'
-import { ProjectSelector } from '@/features/Dashboard/components/ProjectSelector/_'
+import type { Team } from '@/_abstract/libs/todo-server/schemas/teams'
+import { useLogout } from '@/features/authentication/hooks'
+import { ProjectSelector } from '@/features/Dashboard/components/ProjectSelector'
+import { TeamSelector } from '@/features/Dashboard/components/TeamSelector'
 
-type Props = Simplify<Record<string, unknown>>
+type Props = Simplify<Record<string, never>>
 
 // モックデータの型定義
 type Project = {
@@ -52,13 +54,13 @@ type AppUser = {
 export const DashboardHeader = (() => {
   const router = useRouter()
   const [selectedProject, setSelectedProject] = useState<string>('')
+  const [selectedTeam, setSelectedTeam] = useState<string>('')
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false)
 
-  const handleLogout = async () => {
-    await logoutAction().catch((error) => {
-      console.error('ログアウトに失敗しました', error)
-      window.location.href = '/'
-    })
+  const logoutMutation = useLogout()
+
+  const handleLogout = () => {
+    logoutMutation.mutate()
   }
 
   // モックデータ
@@ -214,9 +216,13 @@ export const DashboardHeader = (() => {
           <h1 className={clsx('text-gray-900', 'text-2xl', 'font-bold')}>
             TodoApp
           </h1>
-          <div className={clsx('pl-4')}>
+          <div className={clsx('pl-4', 'flex', 'items-center', 'space-x-4')}>
+            <TeamSelector
+              selectedTeam={selectedTeam}
+              onTeamChange={setSelectedTeam}
+            />
             <ProjectSelector
-              projects={projects}
+              teamId={selectedTeam}
               selectedProject={selectedProject}
               onProjectChange={setSelectedProject}
             />
@@ -243,7 +249,12 @@ export const DashboardHeader = (() => {
             <Settings className={clsx('h-4', 'w-4', 'text-gray-900')} />
           </Button>
 
-          <Button variant="ghost" size="sm" onClick={handleLogout}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLogout}
+            disabled={logoutMutation.isPending}
+          >
             <LogOut className={clsx('h-4', 'w-4', 'text-gray-900')} />
           </Button>
         </div>

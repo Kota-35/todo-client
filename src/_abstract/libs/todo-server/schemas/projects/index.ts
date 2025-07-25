@@ -1,7 +1,1 @@
-export type Project = {
-  id: string
-  name: string
-  description?: string
-  color: string
-  taskCount: number
-}
+export { type Project, project } from './_.schema.ts'
