@@ -16,24 +16,37 @@ export const authMiddleware = (async (request, _event) => {
     return NextResponse.redirect(new URL('/auth/login', request.nextUrl), 303)
   }
 
-  const _ = await fetch(new URL('/api/v1/sessions/me', env.SERVER_ORIGIN), {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      Cookie: request.headers.get('cookie') || '',
-    },
-    credentials: 'include',
-  }).catch((error) => {
+  try {
+    const response = await fetch(
+      new URL('/api/v1/sessions/me', env.SERVER_ORIGIN),
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: `__Host-session=${sessionCookie.value}`,
+        },
+        credentials: 'include',
+      },
+    )
+
+    // セッション検証が失敗した場合
+    if (!response.ok) {
+      console.error(
+        '[auth middleware] Session validation failed:',
+        response.status,
+      )
+      return createAuthFailureResponse(request)
+    }
+
+    // セッションが有効な場合は次の処理に進む
+    return NextResponse.next()
+  } catch (error) {
     console.error(
       '[auth middleware]',
       JSON.stringify(error, stringifyReplaceError, 2),
     )
-    createAuthFailureResponse(request)
-    NextResponse.redirect(new URL('/auth/login', request.nextUrl), 303)
-  })
-
-  // セッションが有効な場合は次の処理に進む
-  return NextResponse.next()
+    return createAuthFailureResponse(request)
+  }
 }) satisfies NextMiddleware
 
 const createAuthFailureResponse = (request: NextRequest) => {
