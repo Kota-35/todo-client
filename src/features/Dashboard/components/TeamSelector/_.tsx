@@ -38,7 +38,7 @@ export const TeamSelector = (({ selectedTeam, onTeamChange }) => {
   const [newTeamDescription, setNewTeamDescription] = useState('')
 
   // React Queryフックを使用
-  const { data: teams = [], isLoading } = useTeams()
+  const { data, isLoading } = useTeams()
   const createTeamMutation = useCreateTeam()
 
   const handleCreateTeam = async () => {
@@ -66,9 +66,9 @@ export const TeamSelector = (({ selectedTeam, onTeamChange }) => {
         </SelectTrigger>
 
         <SelectContent className={clsx('text-gray-500')}>
-          {teams.length > 0 && (
+          {data?.data?.teams && data.data.teams.length > 0 && (
             <>
-              {teams.map((team) => (
+              {data.data.teams.map((team) => (
                 <SelectItem key={team.id} value={team.id}>
                   <div className={clsx('flex', 'items-center', 'space-x-2')}>
                     <span className={clsx('text-gray-500')}>{team.name}</span>
