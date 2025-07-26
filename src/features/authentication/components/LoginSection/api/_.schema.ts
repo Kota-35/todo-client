@@ -8,7 +8,9 @@ const loginData = z.object({
 
 const loginResponseData = z.object({
   accessToken: z.string(),
-  expiresAt: z.string(),
+  refreshToken: z.string(),
+  accessTokenExpiresAt: z.string(),
+  refreshTokenExpiresAt: z.string(),
 })
 
 export const loginResponse = createApiResponse(loginResponseData)

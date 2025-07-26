@@ -73,7 +73,7 @@ export const refreshSession = (async () => {
       httpOnly: true,
       secure: true,
       sameSite: 'lax',
-      expires: new Date(parsed.data.AccessTokenExpiresAt),
+      expires: new Date(parsed.data.expiresAt),
     })
   }
 

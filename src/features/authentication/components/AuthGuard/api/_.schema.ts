@@ -8,7 +8,7 @@ export type ValidateSessionResponse = z.infer<typeof validateSessionResponse>
 export const refreshSessionResponse = createApiResponse(
   z.object({
     accessToken: z.string(),
-    AccessTokenExpiresAt: z.string(),
+    expiresAt: z.string(),
   }),
 )
 
