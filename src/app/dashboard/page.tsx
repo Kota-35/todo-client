@@ -2,7 +2,7 @@
 
 import clsx from 'clsx'
 import type { NextPage } from 'next'
-import { DashboardHeader } from './_components/DashboradHeader/_'
+import { DashboardHeader } from './_components/DashboardHeader/_'
 
 const DashboardPage = (() => {
   return (
