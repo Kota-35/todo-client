@@ -8,7 +8,7 @@ const signupData = z.object({
 })
 
 const signupResponseData = z.object({
-  id: z.string(),
+  userId: z.string(),
   email: z.string(),
   username: z.string(),
   message: z.string(),

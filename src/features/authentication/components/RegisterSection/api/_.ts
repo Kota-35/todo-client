@@ -10,7 +10,7 @@ import {
 export type SignupUser = (data: SignupData) => Promise<SignupResponse>
 
 export const signupUser = (async (data) => {
-  const response = await fetch(new URL('/api/v1//users', env.SERVER_ORIGIN), {
+  const response = await fetch(new URL('/api/v1/users', env.SERVER_ORIGIN), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
