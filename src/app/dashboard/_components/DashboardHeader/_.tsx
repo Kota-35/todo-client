@@ -2,13 +2,11 @@
 
 import clsx from 'clsx'
 import { ListTodo, LogOut, Plus, Settings } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { type FC, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { type FC, useEffect, useState } from 'react'
 import type { Simplify } from 'type-fest'
 import { Button } from '@/_abstract/libs/todo-client/components/button'
-import type { Team } from '@/_abstract/libs/todo-server/schemas/teams'
 import { useLogout } from '@/features/authentication/hooks'
-import { ProjectSelector } from '@/features/Dashboard/components/ProjectSelector'
 import { TeamSelector } from '@/features/Dashboard/components/TeamSelector'
 
 type Props = Simplify<Record<string, never>>
@@ -53,14 +51,28 @@ type AppUser = {
 
 export const DashboardHeader = (() => {
   const router = useRouter()
+  const params = useParams<{ teamId?: string }>()
   const [selectedProject, setSelectedProject] = useState<string>('')
   const [selectedTeam, setSelectedTeam] = useState<string>('')
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false)
 
   const logoutMutation = useLogout()
 
+  // URLパラメータからteamIdを取得してselectedTeamを設定
+  useEffect(() => {
+    if (params.teamId) {
+      setSelectedTeam(params.teamId)
+    }
+  }, [params.teamId])
+
   const handleLogout = () => {
     logoutMutation.mutate()
+  }
+
+  const handleTeamChange = (teamId: string) => {
+    setSelectedTeam(teamId)
+    // チーム選択時にdashboard/[teamId]ページに移動
+    router.push(`/dashboard/${teamId}`)
   }
 
   // モックデータ
@@ -219,12 +231,7 @@ export const DashboardHeader = (() => {
           <div className={clsx('pl-4', 'flex', 'items-center', 'space-x-4')}>
             <TeamSelector
               selectedTeam={selectedTeam}
-              onTeamChange={setSelectedTeam}
-            />
-            <ProjectSelector
-              teamId={selectedTeam}
-              selectedProject={selectedProject}
-              onProjectChange={setSelectedProject}
+              onTeamChange={handleTeamChange}
             />
           </div>
         </div>
